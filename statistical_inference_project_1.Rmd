@@ -1,0 +1,93 @@
+---
+title: 'Part 1: Simulation Exercise Instructions'
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    keep_md: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Statistical Inference Course Project 1
+
+
+## Overview
+In this project I will investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. Set lambda = 0.2 for all of the simulations. I will investigate the distribution of averages of 40 exponentials. Note that I will need to do a thousand simulations.
+
+Illustrate via simulation and associated explanatory text the properties of the distribution of the mean of 40 exponentials. I should
+
+Show the sample mean and compare it to the theoretical mean of the distribution.
+Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution.
+Show that the distribution is approximately normal.
+
+---
+## Simulations
+
+```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+#load libraries
+library(ggplot2)
+
+#set constants
+lambda <- 0.2 # lambda for rexp
+n <- 40 # number of exponetials
+number_of_tests <- 1000 # number of tests
+
+#set the seed to create reproducability
+set.seed(42)
+
+#run the test resulting in n x number_of_tests matrix
+exponential_distributions <- matrix(data=rexp(n * number_of_tests, lambda), nrow=number_of_tests)
+exponential_distributions_mean <- data.frame(means=apply(exponential_distributions, 1, mean))
+
+# plot the means
+ggplot(data = exponential_distributions_mean, aes(x = means)) + 
+  geom_histogram(binwidth=0.1) +   
+  scale_x_continuous(breaks=round(seq(min(exponential_distributions_mean$means), max(exponential_distributions_mean$means), by=1)))
+
+
+```
+
+
+## Sample Mean Vs Theoretical Mean
+
+```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+sample_mean <- 1/lambda
+theoretical_mean <- mean(exponential_distributions_mean$means)
+
+```
+
+* Sample Mean : `r sample_mean`
+* Theoretical Mean : `r theoretical_mean`
+
+
+## Sample Variance versus Theoretical Variance
+
+```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+sample_sd <- sample_mean / sqrt(n)
+sample_variance <- sample_sd^2
+
+theoretical_sd <- sd(exponential_distributions_mean$means)
+theoretical_variance <- var(exponential_distributions_mean$means)
+
+```
+* Sample deviation : `r sample_sd`
+* Theoretical deviation : `r theoretical_sd`
+* Sample Variance : `r sample_variance`
+* Theoretical Variance : `r theoretical_variance`
+
+
+## Distribution
+```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+#plot the means
+ggplot(data = exponential_distributions_mean, aes(x = means)) + 
+  geom_histogram(binwidth=0.1, aes(y=..density..), alpha=0.2) + 
+  stat_function(fun = dnorm, arg = list(mean = sample_mean , sd = sample_sd), colour = "red", size=1) + 
+  geom_vline(xintercept = sample_mean, size=1, colour="#CC0000") + 
+  geom_density(colour="blue", size=1) +
+  geom_vline(xintercept = sample_variance, size=1, colour="#0000CC") + 
+  scale_x_continuous(breaks=seq(sample_mean-3,sample_mean+3,1), limits=c(sample_mean-3,sample_mean+3)) 
+```
